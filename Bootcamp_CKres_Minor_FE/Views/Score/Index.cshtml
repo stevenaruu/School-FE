@@ -1,0 +1,201 @@
+﻿@{
+ViewData["Title"] = "Score";
+}
+
+<div class="row">
+    <div class="col-md text-center text-primary">
+        <h2>NILAI UJIAN SISWA</h2>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-1">
+        <label for="txtSiswaId" class="col-form-label">Siswa ID</label>
+    </div>
+    <div class="col-md-10">
+        <input type="text" class="form-control" id="txtSiswaId">
+    </div>
+    <button class="col-md-1 btn btn-primary" id="btnSearchStudent">SEARCH</button>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Data Siswa</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="txtNama" class="col-form-label">Nama</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="txtNama" disabled>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label for="txtTglLahir" class="col-form-label">Tanggal Lahir</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input type="date" class="form-control" id="txtTglLahir">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label for="txtJenisKelamin" class="col-form-label">Jenis Kelamin</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select name="" id="txtJenisKelamin" class="form-select">
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label for="txtAgama" class="col-form-label">Agama</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select name="" id="txtAgama" class="form-select">
+
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label for="txtEmail" class="col-form-label">Email</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input type="email" class="form-control" id="txtEmail">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label for="txtAddres" class="col-form-label">Addres</label>
+                    </div>
+                    <div class="col-md-9">
+                        <textarea name="" id="txtAddres" rows="5" class="form-control">
+
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md" id="wrapper-table-scores">
+
+    </div>
+</div>
+
+<div class="row mt-3">
+    <button class="col-md-1 btn btn-primary">SAVE</button>
+</div>
+
+@await Html.PartialAsync("components/component-table-scores")
+
+@section Scripts {
+<script>
+    $(document).ready(async function () {
+        var app = {};
+        app.getReq = function (url, params) {
+            return new Promise(function (resolve, reject) {
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    data: params,
+                    success: function (data) {
+                        resolve(data);
+                    },
+                    error: function (e) {
+                        reject('Error on ajax calls!');
+                    },
+                    contentType: "application/json"
+                });
+            });
+        };
+
+        async function getGenders() {
+            try {
+                let genderListResponse = await app.getReq("/Score/GetGenderList");
+
+                if (genderListResponse) {
+                    _.each(genderListResponse.payload, function (objGender) {
+                        $("#txtJenisKelamin").append($('<option>', {
+                            value: objGender.id,
+                            text: objGender.description
+                        }));
+                    });
+                }
+            }
+            catch (error) {
+                alert("error on get genders ajax call!");
+                return false;
+            }
+        }
+
+        async function getReligions() {
+            try {
+                let religionListResponse = await app.getReq("/Score/GetReligionList");
+
+                if (religionListResponse) {
+                    _.each(religionListResponse.payload, function (objReligion) {
+                        $("#txtAgama").append($('<option>', {
+                            value: objReligion.id,
+                            text: objReligion.description
+                        }));
+                    });
+                }
+            }
+            catch (error) {
+                alert("error on get genders ajax call!");
+                return false;
+            }
+        }
+
+        await getGenders();
+        await getReligions();
+
+        $("#btnSearchStudent").click(async function() {
+            let siswaId = $("#txtSiswaId").val();
+
+            if(!siswaId){
+                alert("please fill Siswa ID!");
+                return false;
+            }
+
+            try{
+                let param = {
+                    id: siswaId
+                }
+                let studentDetailResponse = await app.getReq("Score/GetStudentDetail", param);
+
+                if(studentDetailResponse.payload){
+                    $("#txtNama").val(studentDetailResponse.payload.student.name);
+                    $("#txtAgama").val(studentDetailResponse.payload.religion.id);
+                    $("#txtJenisKelamin").val(studentDetailResponse.payload.gender.id);
+                    $("#txtEmail").val(studentDetailResponse.payload.email);
+                    $("#txtAddres").val(studentDetailResponse.payload.addres);
+                    $("#txtTglLahir").val(moment(studentDetailResponse.payload.birthDate).locale("en").format("yyyy-MM-D"));
+
+                    let templateTableScores = _.template(
+                        $("#component-table-scores").html()
+                    )
+
+                    $("#wrapper-table-scores").append(
+                        templateTableScores({ data: studentDetailResponse.payload })
+                    );
+                }
+
+                console.info(studentDetailResponse);
+
+            }
+            catch (error){
+                alert("error on student detail ajax call!");
+            }
+        })
+
+    })
+</script>
+}

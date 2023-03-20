@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\Bootcamp_CKres_Minor_FE.props" />
+</Project>

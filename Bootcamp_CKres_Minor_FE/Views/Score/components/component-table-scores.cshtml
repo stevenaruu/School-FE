@@ -1,0 +1,33 @@
+<script type="text/templete" id="component-table-scores">
+    <table class="table table-striped table-bordered text-center" border="1">
+        <thead class="align-middle bg-primary text-white">
+            <tr>
+                <th rowspan="2">Mata Pelajaran</th>
+                <th colspan="2">Nilai Semester</th>
+                <th rowspan="2">Nilai Akhir</th>
+            </tr>
+            <tr>
+                <th>Semester 1</th>
+                <th>Semester 2</th>
+            </tr>
+        </thead>
+        <tbody class="align-middle">
+            <% _.each (data.scoreList, function(objScore, index){ %>
+                    <tr>
+                        <th><%= objScore.subjectName %></th>
+                        <th><%= objScore.semester1Score %></th>
+                        <th><%= objScore.semester2Score %></th>
+                        <th><%= objScore.finalScore %></th>
+                    </tr>
+            <% }); %>
+            <tr>
+                <th colspan="3">Nilai Ujian Rata-rata</th>
+                <th><%= data.averageFinalScore %></th>
+            </tr>
+            <tr>
+                <th colspan="3">Grade</th>
+                <th><%= data.grade %></th>
+            </tr>
+        </tbody>
+    </table>
+</script>
